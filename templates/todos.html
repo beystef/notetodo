@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Görevlerim — NoteTodo{% endblock %}
+
+{% block content %}
+<section class="todo-section">
+  <form method="post" action="{{ url_for('add_todo') }}" class="add-form">
+    <input type="text" name="title" placeholder="Ne yapılması gerekiyor?" required class="input-title">
+    <div class="datetime-group">
+      <input type="date" name="due_date" class="input-date" title="Tarih">
+      <input type="time" name="due_time" class="input-time" title="Saat">
+    </div>
+    <button type="submit" class="btn btn-primary">Ekle</button>
+  </form>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="active-tab">Aktif <span class="badge">{{ active|length }}</span></button>
+    <button class="tab" data-tab="completed-tab">Tamamlanan <span class="badge">{{ completed|length }}</span></button>
+  </div>
+
+  <div class="sort-bar">
+    <span>Tarihe göre sırala:</span>
+    <a href="{{ url_for('todos', sort='asc') }}" class="btn btn-sm {% if sort == 'asc' %}btn-primary{% else %}btn-outline{% endif %}">Yakın</a>
+    <a href="{{ url_for('todos', sort='desc') }}" class="btn btn-sm {% if sort == 'desc' %}btn-primary{% else %}btn-outline{% endif %}">Uzak</a>
+  </div>
+
+  <div id="active-tab" class="tab-panel show">
+    {% if active %}
+    <ul class="task-list">
+      {% for t in active %}
+      <li class="task-item">
+        <form method="post" action="{{ url_for('toggle_todo', todo_id=t['id']) }}" class="check-form">
+          <button type="submit" class="checkbox" title="Tamamla">
+            <span class="checkbox-inner"></span>
+          </button>
+        </form>
+        <div class="task-body">
+          <span class="task-title">{{ t['title'] }}</span>
+          <span class="task-meta">
+            {% if t['due_date'] %}Termin: {{ t['due_date']|tr_datetime }}{% else %}Tarih yok{% endif %}
+            · Oluşturulma: {{ t['created_at']|tr_date }}
+          </span>
+        </div>
+        <div class="task-actions">
+          <form method="post" action="{{ url_for('delete_todo', todo_id=t['id']) }}">
+            <button type="submit" class="btn btn-sm btn-danger" title="Sil">✕</button>
+          </form>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="empty">Aktif görev yok. Yukarıdan yeni bir görev ekleyin!</p>
+    {% endif %}
+  </div>
+
+  <div id="completed-tab" class="tab-panel">
+    {% if completed %}
+    <ul class="task-list">
+      {% for t in completed %}
+      <li class="task-item completed">
+        <div class="task-body">
+          <span class="task-title">{{ t['title'] }}</span>
+          <span class="task-meta">
+            {% if t['due_date'] %}Termin: {{ t['due_date']|tr_datetime }}{% else %}Tarih yok{% endif %}
+            · Tamamlanma: {{ t['completed_at']|tr_datetime }}
+          </span>
+        </div>
+        <div class="task-actions">
+          <form method="post" action="{{ url_for('undo_todo', todo_id=t['id']) }}">
+            <button type="submit" class="btn btn-sm btn-outline" title="Geri al">Geri Al</button>
+          </form>
+          <form method="post" action="{{ url_for('delete_todo', todo_id=t['id']) }}">
+            <button type="submit" class="btn btn-sm btn-danger" title="Sil">✕</button>
+          </form>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="empty">Henüz tamamlanan görev yok.</p>
+    {% endif %}
+  </div>
+</section>
+
+<script>
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('show'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('show');
+  });
+});
+</script>
+{% endblock %}

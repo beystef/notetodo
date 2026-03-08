@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Yönetim Paneli — NoteTodo{% endblock %}
+
+{% block content %}
+<section class="admin-section">
+  <h1>Yönetim Paneli</h1>
+
+  <div class="card">
+    <h2>Kullanıcı Oluştur</h2>
+    <form method="post" action="{{ url_for('admin_add_user') }}" class="admin-form" autocomplete="off">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="username">Kullanıcı Adı</label>
+          <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Şifre</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+        <div class="form-group">
+          <label for="role">Rol</label>
+          <select id="role" name="role">
+            <option value="user">Kullanıcı</option>
+            <option value="admin">Yönetici</option>
+          </select>
+        </div>
+        <div class="form-group form-action">
+          <button type="submit" class="btn btn-primary">Oluştur</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Tüm Kullanıcılar</h2>
+    <div class="table-wrap">
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Kullanıcı Adı</th>
+            <th>Rol</th>
+            <th>İşlemler</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>{{ u['id'] }}</td>
+            <td>{{ u['username'] }}</td>
+            <td><span class="role-badge role-{{ u['role'] }}">{{ 'Yönetici' if u['role'] == 'admin' else 'Kullanıcı' }}</span></td>
+            <td>
+              {% if u['id'] != current_user.id %}
+              <div class="user-actions">
+                <button type="button" class="btn btn-sm btn-outline" onclick="togglePwForm({{ u['id'] }})">Şifre Değiştir</button>
+                <form method="post" action="{{ url_for('admin_delete_user', user_id=u['id']) }}" style="display:inline">
+                  <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ u['username'] }} kullanıcısı silinsin mi?')">Sil</button>
+                </form>
+              </div>
+              <form method="post" action="{{ url_for('admin_change_user_password', user_id=u['id']) }}" class="pw-change-form" id="pw-form-{{ u['id'] }}" autocomplete="off">
+                <div class="pw-change-row">
+                  <input type="password" name="new_password" placeholder="Yeni şifre (min 4)" required minlength="4" class="pw-input">
+                  <button type="submit" class="btn btn-sm btn-primary">Kaydet</button>
+                  <button type="button" class="btn btn-sm btn-outline" onclick="togglePwForm({{ u['id'] }})">İptal</button>
+                </div>
+              </form>
+              {% else %}
+              <span class="text-muted">Siz</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<script>
+function togglePwForm(userId) {
+  const form = document.getElementById('pw-form-' + userId);
+  form.classList.toggle('show');
+  if (form.classList.contains('show')) {
+    form.querySelector('input').focus();
+  }
+}
+</script>
+{% endblock %}
