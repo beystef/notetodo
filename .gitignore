@@ -9,6 +9,8 @@ __pycache__/
 *.pyo
 .Python
 env/
+env.example
+env.local
 venv/
 .venv/
 *.egg-info/
